@@ -1,4 +1,5 @@
 import entity.Location;
+import entity.Problem;
 import entity.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +93,32 @@ public class AppRunner {
 
                 while (generatedKeys.next()) {
                     log.info("inserted new route. ID : {}", generatedKeys.getLong("id"));
+                }
+            }
+
+            Problem[] problems = {
+                    new Problem(1, 4),
+                    new Problem(2, 4)
+            };
+
+            try (PreparedStatement insertProblem = connection.prepareStatement(
+
+                    "INSERT INTO problems (from_id, to_id) VALUES (?, ?) ON CONFLICT DO NOTHING;",
+                    PreparedStatement.RETURN_GENERATED_KEYS
+            )) {
+
+                for (Problem problem : problems) {
+                    insertProblem.setInt(1, problem.getFromId());
+                    insertProblem.setInt(2, problem.getToId());
+
+                    insertProblem.addBatch();
+                }
+
+                insertProblem.executeBatch();
+                ResultSet generatedKeys = insertProblem.getGeneratedKeys();
+
+                while (generatedKeys.next()) {
+                    log.info("inserted new problem. ID : {}", generatedKeys.getLong("id"));
                 }
             }
 
