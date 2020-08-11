@@ -1,4 +1,5 @@
 import entity.Location;
+import entity.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,43 @@ public class AppRunner {
                 ResultSet generatedKeys = insertLocation.getGeneratedKeys();
 
                 while (generatedKeys.next()) {
-                    log.info("inserted new contact. ID : {}", generatedKeys.getLong("id"));
+                    log.info("inserted new location. ID : {}", generatedKeys.getLong("id"));
+                }
+            }
+
+            Route[] routes = {
+                    new Route(1, 2, 1),
+                    new Route(1, 3, 3),
+                    new Route(2, 1, 1),
+                    new Route(2, 3, 1),
+                    new Route(2, 4, 4),
+                    new Route(3, 1, 3),
+                    new Route(3, 2, 1),
+                    new Route(3, 4, 1),
+                    new Route(4, 2, 4),
+                    new Route(4, 3, 1),
+
+            };
+
+            try (PreparedStatement insertRoute = connection.prepareStatement(
+
+                    "INSERT INTO routes (from_id, to_id, cost) VALUES (?, ?, ?) ON CONFLICT DO NOTHING;",
+                    PreparedStatement.RETURN_GENERATED_KEYS
+            )) {
+
+                for (Route route : routes) {
+                    insertRoute.setInt(1, route.getFromId());
+                    insertRoute.setInt(2, route.getToId());
+                    insertRoute.setInt(3, route.getCost());
+
+                    insertRoute.addBatch();
+                }
+
+                insertRoute.executeBatch();
+                ResultSet generatedKeys = insertRoute.getGeneratedKeys();
+
+                while (generatedKeys.next()) {
+                    log.info("inserted new route. ID : {}", generatedKeys.getLong("id"));
                 }
             }
 
